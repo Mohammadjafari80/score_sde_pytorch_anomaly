@@ -1,11 +1,13 @@
 dataset: mvtec #options [mvtec, cifar10, mnist, fashionmnist]
 config_path: /content/score_sde_pytorch_anomaly/dataset_configs/mvtec.yaml
 mvtec_root: /content/mvtec_anomaly_detection/ # Path to root of mvtec dataset
+cifar_root: ~/.datasets
 normal_class: bottle
 batch_size: 10
 save_checkpoints: True
 save_checkpoints_every: 50
 sample_due_training: true
 sample_every: 50
+number_of_samples: 16
 n_iters: 500
 work_dir: ./logs/

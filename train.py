@@ -166,25 +166,33 @@ import torch
 from torchvision.datasets import CIFAR10
 from torchvision import transforms
 from torchvision.datasets import FashionMNIST
-import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.utils.data.dataset import Dataset 
 import numpy as np
 import time
 
+from datasets import MVTecDataset
 
 orig_transform = transforms.Compose([
-            transforms.Resize(128),
+            transforms.Resize(config.data.image_size),
             transforms.ToTensor()
         ])
 
-dataset_train_good = ImageFolder(root=root_dir_train, transform=orig_transform)
 
-Mvtecad_train_loader = torch.utils.data.DataLoader(
-        dataset_train_good,
-        batch_size=train_config['batch_size'],
-        shuffle=True,
-    )
+train_loader = None
+
+print(f'Normal Class is: {normal_class}, Image Size: {config.data.image_size}')
+
+if train_config['dataset'] == 'mvtec':
+    trainset = MVTecDataset(train_config['mvtec_root'], normal_class, orig_transform, train=True)
+    train_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=train_config['batch_size'])  
+
+elif train_config['dataset'] == 'cifar':
+    cifar_labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+    trainset = CIFAR10(root=os.path.join(train_config['cifar_root'], 'cifar10'), train=True, download=True, transform=orig_transform)
+    normal_class_indx = cifar_labels.index(normal_class)
+    trainset.data = trainset.data[np.array(trainset.targets) == normal_class_indx]
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=train_config['batch_size'], shuffle=True, num_workers=2)
 
 
 import numpy as np
@@ -206,11 +214,11 @@ from absl import flags
 from torchvision.utils import make_grid, save_image
 
 
-
-sampling_shape = (9, config.data.num_channels,
+sampling_shape = (train_config['number_of_samples'], config.data.num_channels,
                   config.data.image_size, config.data.image_size)
 
 sampling_fn =   get_sampling_fn(config, sde, sampling_shape, inverse_scaler, sampling_eps)
+
 
 total_loss=[]
 
@@ -222,27 +230,37 @@ def timer(start,end):
 
 
 
+from tqdm import tqdm
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 for step in range(initial_step, num_train_steps + 1):
-    # Convert data to JAX arrays and normalize them. Use ._numpy() to avoid copy.
-    a_loss = 0
+    
+    running_loss = 0
     tik = time.time()
 
-    for myiter, (batch_images, batch_labels) in enumerate(Mvtecad_train_loader):
-      batch = batch_images.cuda()  
-      batch = scaler(batch)
-      loss = train_step_fn(state, batch)
-      total_loss.append(loss.item())
-      a_loss += loss.item()
+    with tqdm(train_loader, unit="batch") as tepoch:
+        for i, data in enumerate(tepoch):
+            tepoch.set_description(f"Step {step}")
+            batch_images, batch_labels = data
+            batch = batch_images.cuda()  
+            batch = scaler(batch)
+            loss = train_step_fn(state, batch)
+            total_loss.append(loss.item())
+            running_loss += loss.item()
+
+            tepoch.set_postfix({'Average Loss' : running_loss/(i+1) })
     
 
     tok=time.time()
     timer(tik,tok)
-    print(f'epoch loss: {a_loss/myiter:.5f}, Step: {step:04d}')
 
     if train_config['save_checkpoints']:
         if step > 0 and step % train_config['save_checkpoints_every'] == 0 :
-            save_checkpoint(f'/last_ckpt_{normal_class}.pth', state) 
+            save_checkpoint(f'/last_ckpt_{normal_class}.pth', state)
+            print(f'ckpt saved at step {step:04d}')
+            print('*' * 30)
+
 
     if step > 0 and step % train_config['sample_every'] == 0:
         if train_config['sample_due_training']:
@@ -264,8 +282,9 @@ for step in range(initial_step, num_train_steps + 1):
                 os.path.join(this_sample_dir, f"sample-{step:04d}.png"), "wb") as fout:
                 save_image(image_grid, fout)
 
-    tok=time.time()
-    timer(tik,tok)
+            print(f'print sample saved at step {step:04d}')
+
+
 
 
 
