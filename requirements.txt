@@ -10,3 +10,4 @@ torch>=1.7.0
 torchvision
 ninja
 PyYAML
+tqdm
