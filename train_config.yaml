@@ -1,0 +1,10 @@
+dataset: mvtec #options [mvtec, cifar10, mnist, fashionmnist]
+config_path: ./dataset_configs/mvtec.yaml
+mvtec_root: ./mvtec/
+normal_class: bottle
+batch_size: 10
+save_checkpoints: True
+save_checkpoints_every: 50
+sample_due_training: true
+sample_every: 50
+n_iters: 500

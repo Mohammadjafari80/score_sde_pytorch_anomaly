@@ -1,0 +1,116 @@
+!!python/object:ml_collections.config_dict.config_dict.ConfigDict
+_convert_dict: true
+_fields:
+  data: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+    _convert_dict: true
+    _fields:
+      {
+        centered: false,
+        dataset: CelebAHQ,
+        image_size: 128,
+        num_channels: 3,
+        random_flip: true,
+        tfrecords_path: /home/yangsong/ncsc/celebahq/r08.tfrecords,
+        uniform_dequantization: false,
+      }
+    _locked: false
+    _type_safe: true
+  device: !!python/object/apply:torch.device [cuda, 0]
+  eval: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+    _convert_dict: true
+    _fields:
+      {
+        batch_size: 64,
+        begin_ckpt: 1,
+        bpd_dataset: test,
+        enable_bpd: false,
+        enable_loss: true,
+        enable_sampling: true,
+        end_ckpt: 26,
+        num_samples: 50000,
+      }
+    _locked: false
+    _type_safe: true
+  model: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+    _convert_dict: true
+    _fields:
+      attention_type: ddpm
+      attn_resolutions: !!python/tuple [16]
+      beta_max: 20.0
+      beta_min: 0.1
+      ch_mult: !!python/tuple [1, 1, 2, 2, 2, 2, 2]
+      conditional: true
+      conv_size: 3
+      dropout: 0.1
+      ema_rate: 0.999
+      embedding_type: fourier
+      fir: true
+      fir_kernel: [1, 3, 3, 1]
+      fourier_scale: 16
+      init_scale: 0.0
+      name: ncsnpp
+      nf: 128
+      nonlinearity: swish
+      normalization: GroupNorm
+      num_res_blocks: 2
+      num_scales: 1000
+      progressive: output_skip
+      progressive_combine: sum
+      progressive_input: input_skip
+      resamp_with_conv: true
+      resblock_type: biggan
+      scale_by_sigma: true
+      sigma_max: 348.0
+      sigma_min: 0.01
+      skip_rescale: true
+    _locked: false
+    _type_safe: true
+  optim: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+    _convert_dict: true
+    _fields:
+      {
+        beta1: 0.9,
+        eps: 1.0e-08,
+        grad_clip: 1.0,
+        lr: 0.0002,
+        optimizer: Adam,
+        warmup: 5000,
+        weight_decay: 0,
+      }
+    _locked: false
+    _type_safe: true
+  sampling: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+    _convert_dict: true
+    _fields:
+      {
+        corrector: langevin,
+        method: pc,
+        n_steps_each: 1,
+        noise_removal: true,
+        predictor: reverse_diffusion,
+        probability_flow: false,
+        snr: 0.17,
+      }
+    _locked: false
+    _type_safe: true
+  seed: 42
+  training: !!python/object:ml_collections.config_dict.config_dict.ConfigDict
+    _convert_dict: true
+    _fields:
+      {
+        batch_size: 64,
+        continuous: true,
+        eval_freq: 100,
+        likelihood_weighting: false,
+        log_freq: 50,
+        n_iters: 1300001,
+        reduce_mean: false,
+        sde: vesde,
+        snapshot_freq: 50000,
+        snapshot_freq_for_preemption: 10000,
+        snapshot_sampling: true,
+      }
+    _locked: false
+    _type_safe: true
+_locked: false
+_type_safe: true
