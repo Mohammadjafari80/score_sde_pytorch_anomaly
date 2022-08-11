@@ -112,7 +112,7 @@ checkpoint_meta_dir = os.path.join(workdir,  "checkpoints-meta")
 tf.io.gfile.makedirs(checkpoint_dir)
 tf.io.gfile.makedirs(os.path.dirname(checkpoint_meta_dir))
 # Resume training when intermediate checkpoints are detected
-state = restore_checkpoint(checkpoint_meta_dir, state, config.device)
+state = restore_checkpoint(train_config['currently_trained_model_path'] if not train_config['load_model'] else '', state, config.device)
 initial_step = int(state['step'])
 print("initial_step",initial_step)
 
@@ -181,7 +181,7 @@ orig_transform = transforms.Compose([
 
 train_loader = None
 
-print(f'Normal Class is: {normal_class}, Image Size: {config.data.image_size}')
+print(f'Dataset: {train_config["dataset"]}, Normal Class is: {normal_class}, Image Size: {config.data.image_size}')
 
 if train_config['dataset'] == 'mvtec':
     trainset = MVTecDataset(train_config['mvtec_root'], normal_class, orig_transform, train=True)
@@ -233,9 +233,10 @@ def timer(start,end):
 from tqdm import tqdm
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f'Device: {device}')
 
 for step in range(initial_step, num_train_steps + 1):
-    
+
     running_loss = 0
     tik = time.time()
 
@@ -243,7 +244,7 @@ for step in range(initial_step, num_train_steps + 1):
         for i, data in enumerate(tepoch):
             tepoch.set_description(f"Step {step}")
             batch_images, batch_labels = data
-            batch = batch_images.cuda()  
+            batch = batch_images.to(device)  
             batch = scaler(batch)
             loss = train_step_fn(state, batch)
             total_loss.append(loss.item())
@@ -257,9 +258,11 @@ for step in range(initial_step, num_train_steps + 1):
 
     if train_config['save_checkpoints']:
         if step > 0 and step % train_config['save_checkpoints_every'] == 0 :
-            save_checkpoint(f'/last_ckpt_{normal_class}.pth', state)
-            print(f'ckpt saved at step {step:04d}')
-            print('*' * 30)
+            ckpt_dir = os.path.join(checkpoint_dir, f'last_ckpt_{normal_class}.pth')
+            save_checkpoint(ckpt_dir, state)
+            print(f'ckpt saved in step {step:04d} at {ckpt_dir}')
+            print('*' * 50)
+
 
 
     if step > 0 and step % train_config['sample_every'] == 0:
@@ -282,7 +285,8 @@ for step in range(initial_step, num_train_steps + 1):
                 os.path.join(this_sample_dir, f"sample-{step:04d}.png"), "wb") as fout:
                 save_image(image_grid, fout)
 
-            print(f'print sample saved at step {step:04d}')
+            print(f'samples saved in step {step:04d}, at {this_sample_dir}')
+            print('*' * 50)
 
 
 
