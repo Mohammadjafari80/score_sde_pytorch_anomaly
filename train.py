@@ -13,6 +13,7 @@ import itertools
 import torch
 from losses import get_optimizer
 from models.ema import ExponentialMovingAverage
+from utils import save_checkpoint, restore_checkpoint
 
 
 import torch.nn as nn
@@ -70,34 +71,19 @@ with open(train_config['config_path']) as f:
 
 config = config_dict.ConfigDict(config)
 
-import shutil
-  
-directory="/content/score_sde_pytorch/op/Untitled Folder"
-directory1="/content/score_sde_pytorch/op/Untitled Folder 1"
-if not os.path.exists(directory):
-    os.makedirs(directory)
-if not os.path.exists(directory1):
-    os.makedirs(directory1)
- 
- 
-
-shutil.move("/content/score_sde_pytorch/op/upfirdn2d.cpp", "/content/score_sde_pytorch/op/Untitled Folder 1")
-shutil.move("/content/score_sde_pytorch/op/upfirdn2d_kernel.cu", "/content/score_sde_pytorch/op/Untitled Folder 1")
- 
-shutil.move("/content/score_sde_pytorch/op/fused_bias_act.cpp", "/content/score_sde_pytorch/op/Untitled Folder")
-shutil.move("/content/score_sde_pytorch/op/fused_bias_act_kernel.cu", "/content/score_sde_pytorch/op/Untitled Folder")
- 
 
 import logging
-tf.io.gfile.makedirs("/content/score_sde_pytorch/Untitled Folder")
-gfile_stream = open(os.path.join("/content/score_sde_pytorch/Untitled Folder", 'stdout.txt'), 'w')
+workdir = train_config['work_dir']
+tf.io.gfile.makedirs(workdir)
+gfile_stream = open(os.path.join(workdir, 'stdout.txt'), 'w')
 handler = logging.StreamHandler(gfile_stream)
 formatter = logging.Formatter('%(levelname)s - %(filename)s - %(asctime)s - %(message)s')
 handler.setFormatter(formatter)
 logger = logging.getLogger()
 logger.addHandler(handler)
 logger.setLevel('INFO')
-workdir=f"/content/{train_config['normal_class']}"
+
+workdir = os.path.join(workdir, train_config['normal_class'])
 
 
 import matplotlib.pyplot as plt
@@ -126,7 +112,7 @@ checkpoint_meta_dir = os.path.join(workdir,  "checkpoints-meta")
 tf.io.gfile.makedirs(checkpoint_dir)
 tf.io.gfile.makedirs(os.path.dirname(checkpoint_meta_dir))
 # Resume training when intermediate checkpoints are detected
-state = checkpoints.restore_checkpoint(checkpoint_meta_dir, state, config.device)
+state = restore_checkpoint(checkpoint_meta_dir, state, config.device)
 initial_step = int(state['step'])
 print("initial_step",initial_step)
 
@@ -201,17 +187,11 @@ Mvtecad_train_loader = torch.utils.data.DataLoader(
     )
 
 
-import flax
-import flax.jax_utils as flax_utils
-import jax
-import jax.numpy as jnp
 import numpy as np
 import tensorflow as tf
 import tensorflow_gan as tfgan
 import logging
 import functools
-from flax.metrics import tensorboard
-from flax.training import checkpoints
 # Keep the import below for registering all model definitions
 from models import ddpm, ncsnv2, ncsnpp
 import losses
@@ -262,7 +242,7 @@ for step in range(initial_step, num_train_steps + 1):
 
     if train_config['save_checkpoints']:
         if step > 0 and step % train_config['save_checkpoints_every'] == 0 :
-            checkpoints.save_checkpoint(f'/last_ckpt_{normal_class}.pth', state) 
+            save_checkpoint(f'/last_ckpt_{normal_class}.pth', state) 
 
     if step > 0 and step % train_config['sample_every'] == 0:
         if train_config['sample_due_training']:
