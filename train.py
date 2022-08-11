@@ -83,7 +83,7 @@ logger = logging.getLogger()
 logger.addHandler(handler)
 logger.setLevel('INFO')
 
-workdir = os.path.join(workdir, train_config['normal_class'])
+workdir = os.path.join(workdir, f'{train_config["normal_class"]}-{train_config["normal_class"]}')
 
 
 import matplotlib.pyplot as plt

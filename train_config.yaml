@@ -2,14 +2,14 @@ dataset: mvtec #options [mvtec, cifar10, mnist, fashionmnist]
 config_path: /content/score_sde_pytorch_anomaly/dataset_configs/mvtec.yaml
 mvtec_root: /content/mvtec_anomaly_detection/ # Path to root of mvtec dataset
 cifar_root: ~/.datasets
-normal_class: toothbrush
+normal_class: toothbrush #  MVTEC exmple: bottle, Cifar example: airplane
 batch_size: 10
 save_checkpoints: True
 save_checkpoints_every: 50
 sample_due_training: True
-sample_every: 50
+sample_every: 50 # Takes too much time
 number_of_samples: 16
-n_iters: 500
+n_iters: 500 # Number of all iterations
 work_dir: ./logs/
-load_model: False
+load_model: False # Contitnue training of an already trained model
 currently_trained_model_path: ./logs/toothbrush/checkpoints/last_ckpt_toothbrush.pth
