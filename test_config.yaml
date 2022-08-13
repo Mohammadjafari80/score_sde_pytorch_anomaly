@@ -1,0 +1,9 @@
+dataset: mvtec #options [mvtec, cifar10, mnist, fashionmnist]
+config_path: /content/score_sde_pytorch_anomaly/dataset_configs/mvtec.yaml
+mvtec_root: /content/mvtec_anomaly_detection/ # Path to root of mvtec dataset
+cifar_root: ~/.datasets
+normal_class: toothbrush #  MVTEC exmple: bottle, Cifar example: airplane
+batch_size: 10
+ckpt_path: ./logs/toothbrush/checkpoints/last_ckpt_toothbrush.pth # Path to already trained model
+train_save_path: ./results/ # Saves 'score-{normal_class}-train.npy' there
+test_save_path: ./results/ # Saves 'score-{normal_class}-test.npy' and 'labels-{normal_class}-test.npy' there
