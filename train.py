@@ -185,7 +185,7 @@ print(f'Dataset: {train_config["dataset"]}, Normal Class is: {normal_class}, Ima
 
 if train_config['dataset'] == 'mvtec':
     trainset = MVTecDataset(train_config['mvtec_root'], normal_class, orig_transform, train=True)
-    train_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=train_config['batch_size'])  
+    train_loader = torch.utils.data.DataLoader(trainset, shuffle=True, batch_size=train_config['batch_size'])  
 
 elif train_config['dataset'] == 'cifar':
     cifar_labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
