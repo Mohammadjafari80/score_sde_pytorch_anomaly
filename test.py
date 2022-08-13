@@ -23,7 +23,7 @@ import tensorflow as tf
 from ml_collections import config_dict
 
 #import tensorflow_gan as tfgan
-import tqdm
+from tqdm import tqdm
 import io
 import likelihood
 import controllable_generation
@@ -145,7 +145,7 @@ if test_config['dataset'] == 'mvtec':
     trainset = MVTecDataset(test_config['mvtec_root'], normal_class, orig_transform, train=True)
     train_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=test_config['batch_size'])  
     testset = MVTecDataset(test_config['mvtec_root'], normal_class, orig_transform, train=False)
-    train_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=test_config['batch_size'])  
+    test_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=test_config['batch_size'])  
 
 elif test_config['dataset'] == 'cifar':
     cifar_labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
@@ -154,7 +154,8 @@ elif test_config['dataset'] == 'cifar':
     testset.targets  = [int(t!=normal_class) for t in testset.targets]
     trainset = CIFAR10(root=os.path.join(test_config['cifar_root'], 'cifar10'), train=True, download=True, transform=orig_transform)
     trainset.data = trainset.data[np.array(trainset.targets) == normal_class_indx]
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=test_config['batch_size'], shuffle=True, num_workers=2)
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
+    test_loader = torch.utils.data.DataLoader(trainset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
 
 
 # TEST SCORES & AUC on TEST SET ---- NO SHUFFLE
