@@ -143,24 +143,25 @@ normal_class =  test_config['normal_class']
 
 if test_config['dataset'] == 'mvtec':
     trainset = MVTecDataset(test_config['mvtec_root'], normal_class, orig_transform, train=True)
-    train_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=test_config['batch_size'])  
+    train_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=test_config['batch_size'], num_workers=2)  
     testset = MVTecDataset(test_config['mvtec_root'], normal_class, orig_transform, train=False)
-    test_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=test_config['batch_size'])  
+    test_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=test_config['batch_size'], num_workers=2)  
 
 elif test_config['dataset'] == 'cifar':
     cifar_labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
     normal_class_indx = cifar_labels.index(normal_class)
-    testset = CIFAR10(root=os.path.join(test_config['cifar_root'], 'cifar10'), train=False, download=True, transform=orig_transform)
-    testset.targets  = [int(t!=normal_class) for t in testset.targets]
+
     trainset = CIFAR10(root=os.path.join(test_config['cifar_root'], 'cifar10'), train=True, download=True, transform=orig_transform)
     trainset.data = trainset.data[np.array(trainset.targets) == normal_class_indx]
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
-    test_loader = torch.utils.data.DataLoader(trainset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
 
+    testset = CIFAR10(root=os.path.join(test_config['cifar_root'], 'cifar10'), train=False, download=True, transform=orig_transform)
+    testset.targets  = [int(t!=normal_class) for t in testset.targets]
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
 
+    
+    
 # TEST SCORES & AUC on TEST SET ---- NO SHUFFLE
-
-
 
 scores = []
 labels = []
@@ -179,7 +180,7 @@ with tqdm(test_loader, unit="batch") as tepoch:
             current_scores = bpd.detach().cpu().numpy()
             scores.extend(current_scores.tolist())
             labels.extend(current_labels.tolist())
-            tepoch.set_postfix({'Mean bpd' : torch.mean(bpd).item(), 'Mean nfe' : torch.mean(nfe).item()})
+            tepoch.set_postfix({'BPDs' : current_scores, 'Labels' : current_labels})
             
 
 from sklearn.metrics import roc_auc_score
@@ -204,12 +205,12 @@ print('Evaluating Scores on TrainSet...')
 with tqdm(train_loader, unit="batch") as tepoch:
         for i, data in enumerate(tepoch):
             tepoch.set_description(f'Batch : {i}/{len(test_loader)}')
-            new_batch = data[0].to(config.device)
+            new_batch = data[0].to(device)
             img = scaler(new_batch)
             bpd, z, nfe = likelihood_fn(score_model, img)
             current_scores = bpd.detach().cpu().numpy()
             scores.extend(current_scores.tolist())
-            tepoch.set_postfix({'Mean bpd' : torch.mean(bpd).item(), 'Mean nfe' : torch.mean(nfe).item()})
+            tepoch.set_postfix({'BPDs' : current_scores})
 
 
 
