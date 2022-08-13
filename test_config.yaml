@@ -7,3 +7,5 @@ batch_size: 2 # it has to be greater than 1
 ckpt_path: /content/drive/MyDrive/iter_1600_Toothbrush.pth # Path to already trained model
 train_save_path: ./results/ # Saves 'score-{normal_class}-train.npy' there
 test_save_path: ./results/ # Saves 'score-{normal_class}-test.npy' and 'labels-{normal_class}-test.npy' there
+quick_estimate: False
+portion_of_sample: 0.2

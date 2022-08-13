@@ -143,9 +143,12 @@ normal_class =  test_config['normal_class']
 
 if test_config['dataset'] == 'mvtec':
     trainset = MVTecDataset(test_config['mvtec_root'], normal_class, orig_transform, train=True)
-    train_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=test_config['batch_size'], num_workers=2)  
+    train_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=test_config['batch_size'], num_workers=2)
     testset = MVTecDataset(test_config['mvtec_root'], normal_class, orig_transform, train=False)
-    test_loader = torch.utils.data.DataLoader(trainset, shuffle=False, batch_size=test_config['batch_size'], num_workers=2)  
+    if test_config['quick_estimate']:
+        sample_count = int(len(testset) * test_config['portion_of_sample'])
+        testset, _ = torch.utils.data.random_split(testset, [sample_count, len(testset) - sample_count])
+    test_loader = torch.utils.data.DataLoader(testset, shuffle=False, batch_size=test_config['batch_size'], num_workers=2)  
 
 elif test_config['dataset'] == 'cifar':
     cifar_labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
@@ -157,6 +160,11 @@ elif test_config['dataset'] == 'cifar':
 
     testset = CIFAR10(root=os.path.join(test_config['cifar_root'], 'cifar10'), train=False, download=True, transform=orig_transform)
     testset.targets  = [int(t!=normal_class) for t in testset.targets]
+
+    if test_config['quick_estimate']:
+        sample_count = int(len(testset) * test_config['portion_of_sample'])
+        testset, _ = torch.utils.data.random_split(testset, [sample_count, len(testset) - sample_count])
+
     test_loader = torch.utils.data.DataLoader(testset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
 
     
@@ -168,7 +176,7 @@ labels = []
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-print('Evaluating Scores on TestSet...')
+print(f'Evaluating Scores on TestSet - {"Quick" if  test_config["quick_estimate"] else "Complete"} mode')
 
 with tqdm(test_loader, unit="batch") as tepoch:
         for i, data in enumerate(tepoch):
@@ -187,12 +195,13 @@ from sklearn.metrics import roc_auc_score
 auc_score = roc_auc_score(labels, scores)
 print(f'AUC Score - Test is : {auc_score}')
 
+if not test_config['quick_estimate']:
 
-with open(os.path.join(test_config['test_save_path'], f'score-{normal_class}-test.npy'), 'wb') as f:
-         np.save(f, np.array(scores))
+    with open(os.path.join(test_config['test_save_path'], f'score-{normal_class}-test.npy'), 'wb') as f:
+            np.save(f, np.array(scores))
 
-with open(os.path.join(test_config['test_save_path'], f'labels-{normal_class}-test.npy'), 'wb') as f:
-         np.save(f, np.array(scores))
+    with open(os.path.join(test_config['test_save_path'], f'labels-{normal_class}-test.npy'), 'wb') as f:
+            np.save(f, np.array(scores))
 
 
 # TEST SCORES & AUC on TRAIN SET ---- NO SHUFFLE
@@ -200,19 +209,20 @@ with open(os.path.join(test_config['test_save_path'], f'labels-{normal_class}-te
 
 scores = []
 
-print('Evaluating Scores on TrainSet...')
+if not test_config['quick_estimate']:
+    print('Evaluating Scores on TrainSet...')
 
-with tqdm(train_loader, unit="batch") as tepoch:
-        for i, data in enumerate(tepoch):
-            tepoch.set_description(f'Batch : {i}/{len(test_loader)}')
-            new_batch = data[0].to(device)
-            img = scaler(new_batch)
-            bpd, z, nfe = likelihood_fn(score_model, img)
-            current_scores = bpd.detach().cpu().numpy()
-            scores.extend(current_scores.tolist())
-            tepoch.set_postfix({'BPDs' : current_scores})
+    with tqdm(train_loader, unit="batch") as tepoch:
+            for i, data in enumerate(tepoch):
+                tepoch.set_description(f'Batch : {i}/{len(test_loader)}')
+                new_batch = data[0].to(device)
+                img = scaler(new_batch)
+                bpd, z, nfe = likelihood_fn(score_model, img)
+                current_scores = bpd.detach().cpu().numpy()
+                scores.extend(current_scores.tolist())
+                tepoch.set_postfix({'BPDs' : current_scores})
 
 
 
-with open(os.path.join(test_config['train_save_path'], f'score-{normal_class}-train.npy'), 'wb') as f:
-         np.save(f, np.array(scores))
+    with open(os.path.join(test_config['train_save_path'], f'score-{normal_class}-train.npy'), 'wb') as f:
+            np.save(f, np.array(scores))
