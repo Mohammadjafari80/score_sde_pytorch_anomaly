@@ -372,7 +372,7 @@ except:
 
 
 for attack in attack_config['attacks']:
-    results['attack_config'].append(normal_class)
+    results['label'].append(normal_class)
     attack_type, attack_params = tuple(attack.items())[0]
 
     results['attack_config'].append(f'{attack_type} - {attack_params}')
