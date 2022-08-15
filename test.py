@@ -201,7 +201,7 @@ if not test_config['quick_estimate']:
             np.save(f, np.array(scores))
 
     with open(os.path.join(test_config['test_save_path'], f'labels-{normal_class}-test.npy'), 'wb') as f:
-            np.save(f, np.array(scores))
+            np.save(f, np.array(labels))
 
 
 # TEST SCORES & AUC on TRAIN SET ---- NO SHUFFLE
