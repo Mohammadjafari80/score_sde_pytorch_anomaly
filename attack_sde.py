@@ -1,7 +1,7 @@
 
 # %%
 import yaml
-from datasets import MVTecDataset, MVTecDatasetDivided
+from datasets import MVTecDataset, MVTecDatasetDivided, MVTecDatasetScores
 import numpy as np
 from torchvision import transforms
 import torch
@@ -113,7 +113,6 @@ from models.ema import ExponentialMovingAverage
 from utils import save_checkpoint, restore_checkpoint
 import yaml
 from sampling import get_pc_sampler
-from datasets import MVTecDataset
 import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR10
 import likelihood
@@ -190,7 +189,7 @@ resnet_transform = transforms.Compose([
         ])
 
 
-testset =  MVTecDataset(attack_config['mvtec_root'], normal_class, resnet_transform, train=False, scores=normal_sde_scores)
+testset =  MVTecDatasetScores(attack_config['mvtec_root'], normal_class, resnet_transform, train=False, scores=normal_sde_scores)
 testloader = torch.utils.data.DataLoader(testset, batch_size=attack_config['batch_size'], shuffle=False, num_workers=2)
 
 
