@@ -7,7 +7,9 @@ tensorflow-addons==0.12.0
 tensorboard==2.4.0
 absl-py==0.10.0
 torch>=1.7.0
+faiss-gpu==1.7.1
 torchvision
 ninja
 PyYAML
 tqdm
+pandas

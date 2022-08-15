@@ -234,3 +234,40 @@ class MVTecDataset(Dataset):
 
     def __len__(self):
         return len(self.image_files)
+
+
+class MVTecDatasetDivided(Dataset):
+    def __init__(self, root, category, transform=None, target_transform=None, train=True, normal=True):
+        self.transform = transform
+        if train:
+            self.image_files = glob(
+                os.path.join(root, category, "train", "good", "*.png")
+            )
+        else:
+          image_files = glob(os.path.join(root, category, "test", "*", "*.png"))
+          normal_image_files = glob(os.path.join(root, category, "test", "good", "*.png"))
+          anomaly_image_files = list(set(image_files) - set(normal_image_files))
+          
+          if normal:
+            self.image_files = normal_image_files
+          else:
+            self.image_files = anomaly_image_files
+
+        self.train = train
+
+    def __getitem__(self, index):
+        image_file = self.image_files[index]
+        image = Image.open(image_file)
+        image = image.convert('RGB')
+        if self.transform is not None:
+            image = self.transform(image)
+
+        if os.path.dirname(image_file).endswith("good"):
+            target = 0
+        else:
+            target = 1
+
+        return image, target
+
+    def __len__(self):
+        return len(self.image_files)
