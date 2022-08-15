@@ -361,7 +361,7 @@ anomaly_loader = torch.utils.data.DataLoader(anomaly_set, batch_size=4, shuffle=
 
 results = {}
 try:
-    results = pd.read_csv(os.path.join(attack_config['results_path'], f'{attack_config["output_file_name"]}.csv'))
+    results = pd.read_csv(os.path.join(attack_config['results_path'], f'{attack_config["output_file_name"]}.csv')).to_dict(orient='list')
 except:
     results['attack_config'] = []
     results['label'] = []
@@ -395,9 +395,8 @@ for attack in attack_config['attacks']:
     results['auc_adv'].append(roc_auc_score(all_labels, adversarial_scores) * 100)
     results['auc_org'].append(auc_score * 100)
     results['sim_adv'].append(roc_auc_score(all_labels, simulated_adversarial_scores) * 100)
-    results['sim_org'].append(roc_auc_score(all_labels, simulated_adversarial_scores) * 100)
+    results['sim_org'].append(roc_auc_score(all_labels, simulated_scores) * 100)
 
     df = pd.DataFrame(results)
     df.to_csv(os.path.join(attack_config['results_path'], f'{attack_config["output_file_name"]}.csv'), index=False)
-    df.to_excel(os.path.join(attack_config['results_path'], f'{attack_config["output_file_name"]}.xls'), index=False)
     print(f'Updated resutls at {os.path.join(attack_config["results_path"])}')

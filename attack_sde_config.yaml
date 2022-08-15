@@ -3,16 +3,16 @@ config_path: /content/score_sde_pytorch_anomaly/dataset_configs/mvtec.yaml
 mvtec_root: /content/mvtec_anomaly_detection/ # Path to root of mvtec dataset
 cifar_root: ~/.datasets
 normal_class: toothbrush #  MVTEC exmple: bottle, Cifar example: airplane
-batch_size: 32
+batch_size: 32 # batch size that resnet is trained on
 ckpt_path: /content/drive/MyDrive/iter_1600_Toothbrush.pth # Path to already trained model
-results_path: ./results-sde/
-output_file_name: attack_results
+results_path: ./results-sde/ # saves results as csv row in this folder
+output_file_name: attack_results # saves csv file with name {output_file_name}.csv
 sde_scores: ./toothbrush_scores_iter_1600_128.npy
 sde_labels: ./toothbrush.npy
 learning_rate: 0.00001
 number_of_epochs: 60
 auc_every_epoch: True
-attacks:
-  - PGD: { "eps": 0.02, "steps": 100, "regression_value": -50 }
-  - PGD: { "eps": 0.03, "steps": 100, "regression_value": -50 }
-  - PGD: { "eps": 0.04, "steps": 100, "regression_value": -50 }
+attacks: # You can add as many as configs as you like. supported [PGD, FGSM]
+  - PGD: { "eps": 0.02, "steps": 100, "regression_value": -50.0 } # regression_value must be float (Not -50)
+  - PGD: { "eps": 0.03, "steps": 100, "regression_value": -50.0 }
+  - PGD: { "eps": 0.04, "steps": 100, "regression_value": -50.0 }
