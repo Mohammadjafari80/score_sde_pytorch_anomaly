@@ -13,7 +13,6 @@ import torchvision
 import torchvision.transforms as transforms
 import numpy as np
 # import faiss
-import torchvision.models as models
 import torch.nn.functional as F
 from PIL import ImageFilter
 import random
@@ -22,37 +21,6 @@ import torch.optim as optim
 from torch import nn
 from tqdm import tqdm
 import pandas as pd
-from ml_collections import config_dict
-import models
-from models import utils as mutils
-from models import ncsnv2
-from models import ncsnpp
-from models import ddpm as ddpm_model
-from models import layerspp
-from models import layers
-from models import normalization
-import sampling
-from likelihood import get_likelihood_fn
-from sde_lib import VESDE, VPSDE, subVPSDE
-from sampling import (ReverseDiffusionPredictor, 
-                      LangevinCorrector, 
-                      EulerMaruyamaPredictor, 
-                      AncestralSamplingPredictor, 
-                      NoneCorrector, 
-                      NonePredictor,
-                      AnnealedLangevinDynamics)
-import datasets
-import ml_collections
-import torch
-from losses import get_optimizer
-from models.ema import ExponentialMovingAverage
-from utils import save_checkpoint, restore_checkpoint
-import yaml
-from sampling import get_pc_sampler
-from datasets import MVTecDataset
-import torchvision.transforms as transforms
-from torchvision.datasets import CIFAR10
-import likelihood
 import os
 
 
@@ -76,6 +44,8 @@ normal_sde_scores = (sde_scores - min_score) / (max_score - min_score)
 normal_sde_scores -= 0.5
 
 ## Load ResNet Model --------------------------------------------------------
+
+import torchvision.models as models
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -115,6 +85,39 @@ simulated_model = Model(152).to(device)
 
 
 ## Load SDE Model --------------------------------------------------------------------
+
+from ml_collections import config_dict
+import models
+from models import utils as mutils
+from models import ncsnv2
+from models import ncsnpp
+from models import ddpm as ddpm_model
+from models import layerspp
+from models import layers
+from models import normalization
+import sampling
+from likelihood import get_likelihood_fn
+from sde_lib import VESDE, VPSDE, subVPSDE
+from sampling import (ReverseDiffusionPredictor, 
+                      LangevinCorrector, 
+                      EulerMaruyamaPredictor, 
+                      AncestralSamplingPredictor, 
+                      NoneCorrector, 
+                      NonePredictor,
+                      AnnealedLangevinDynamics)
+import datasets
+import ml_collections
+import torch
+from losses import get_optimizer
+from models.ema import ExponentialMovingAverage
+from utils import save_checkpoint, restore_checkpoint
+import yaml
+from sampling import get_pc_sampler
+from datasets import MVTecDataset
+import torchvision.transforms as transforms
+from torchvision.datasets import CIFAR10
+import likelihood
+import os
 
 config = None
 with open(attack_config['config_path']) as f:
