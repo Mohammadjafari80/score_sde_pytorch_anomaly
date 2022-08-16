@@ -176,11 +176,22 @@ labels = []
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+import pandas as pd
+
+results = {}
+try:
+    results = pd.read_csv(os.path.join(test_config['auc_save_path'], f'auc-{normal_class}.csv')).to_dict(orient='list')
+except:
+    results['auc'] = []
+    results['label'] = []
+
+print('-' * 50)
 print(f'Evaluating Scores on TestSet - {"Quick" if  test_config["quick_estimate"] else "Complete"} mode')
+print('-' * 50)
 
 with tqdm(test_loader, unit="batch") as tepoch:
         for i, data in enumerate(tepoch):
-            tepoch.set_description(f'Batch : {i}/{len(test_loader)}')
+            tepoch.set_description(f'Batch : {i+1}/{len(test_loader)}')
             new_batch = data[0].to(device)
             img = scaler(new_batch)
             current_labels = data[1].detach().cpu().numpy()
@@ -192,8 +203,15 @@ with tqdm(test_loader, unit="batch") as tepoch:
             
 
 from sklearn.metrics import roc_auc_score
+
 auc_score = roc_auc_score(labels, scores)
-print(f'AUC Score - Test is : {auc_score}')
+results['auc'].append(auc_score)
+results['label'].append(normal_class)
+df = pd.DataFrame(results)
+df.to_csv(os.path.join(test_config['auc_save_path'], f'auc-{normal_class}.csv'), index=False)
+print(f'Added AUC resutls at {os.path.join(test_config["auc_save_path"])}')
+print(f'AUC Score - Test is : {auc_score * 100}')
+
 
 if not test_config['quick_estimate']:
 
@@ -206,15 +224,16 @@ if not test_config['quick_estimate']:
 
 # TEST SCORES & AUC on TRAIN SET ---- NO SHUFFLE
 
-
 scores = []
 
 if not test_config['quick_estimate']:
+    print('-' * 50)
     print('Evaluating Scores on TrainSet...')
+    print('-' * 50)
 
     with tqdm(train_loader, unit="batch") as tepoch:
             for i, data in enumerate(tepoch):
-                tepoch.set_description(f'Batch : {i}/{len(test_loader)}')
+                tepoch.set_description(f'Batch : {i+1}/{len(train_loader)}')
                 new_batch = data[0].to(device)
                 img = scaler(new_batch)
                 bpd, z, nfe = likelihood_fn(score_model, img)
@@ -226,3 +245,5 @@ if not test_config['quick_estimate']:
 
     with open(os.path.join(test_config['train_save_path'], f'score-{normal_class}-train.npy'), 'wb') as f:
             np.save(f, np.array(scores))
+
+

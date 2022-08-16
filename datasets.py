@@ -216,6 +216,7 @@ class MVTecDataset(Dataset):
           anomaly_image_files = list(set(image_files) - set(normal_image_files))
           self.image_files = image_files
 
+        self.image_files.sort(key=lambda y: y.lower())
         self.train = train
 
     def __getitem__(self, index):
@@ -253,6 +254,7 @@ class MVTecDatasetDivided(Dataset):
           else:
             self.image_files = anomaly_image_files
 
+        self.image_files.sort(key=lambda y: y.lower())
         self.train = train
 
     def __getitem__(self, index):
@@ -293,6 +295,7 @@ class MVTecDatasetScores(Dataset):
 
           self.image_files = image_files
 
+        self.image_files.sort(key=lambda y: y.lower())
         self.train = train
         self.scores = scores
 
