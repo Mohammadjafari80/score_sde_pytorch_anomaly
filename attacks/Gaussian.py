@@ -11,7 +11,10 @@ class Gaussian():
         """
         Overridden.
         """
-        adv_images = images + torch.randn(images.size()) * self.std + self.mean
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        images = images.to(device)
+
+        adv_images = images + torch.randn(images.size(), device=device) * self.std + self.mean
         return adv_images
 
     def __call__(self, *input, **kwargs):
