@@ -16,3 +16,7 @@ class Gaussian():
         adv_images = images + torch.randn(images.size()) * self.std + self.mean
 
         return adv_images
+
+    def __call__(self, *input, **kwargs):
+        images = self.forward(*input, **kwargs)
+        return images
