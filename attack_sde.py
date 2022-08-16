@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import Dataset
 from attacks.FGSM import FGSM
 from attacks.PGD import PGD
+from attacks.Gaussian import Gaussian
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -385,6 +386,8 @@ for attack in attack_config['attacks']:
         attack_module = PGD(**attack_params)
     elif attack_type == 'FGSM':
         attack_module = FGSM(**attack_params)
+    elif attack_type == 'Gaussian':
+        attack_module = Gaussian(**attack_params)
     
     adversarial_scores,\
     simulated_scores,\
