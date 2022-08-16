@@ -76,6 +76,9 @@ if not os.path.exists(test_config['train_save_path']):
 if not os.path.exists(test_config['test_save_path']):
     os.makedirs(test_config['test_save_path'])
 
+if not os.path.exists(test_config['auc_save_path']):
+    os.makedirs(test_config['auc_save_path'])
+
 config = None
 with open(test_config['config_path']) as f:
     config = yaml.load(f, Loader=yaml.UnsafeLoader) 
