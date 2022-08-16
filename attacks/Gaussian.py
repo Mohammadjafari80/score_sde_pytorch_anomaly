@@ -1,4 +1,3 @@
-tensor + torch.randn(tensor.size()) * self.std + self.mean
 
 import torch
 import torch.nn as nn
