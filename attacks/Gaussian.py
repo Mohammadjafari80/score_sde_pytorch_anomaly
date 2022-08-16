@@ -11,10 +11,7 @@ class Gaussian():
         """
         Overridden.
         """
-        images = images.clone().detach().to(self.device)
-
         adv_images = images + torch.randn(images.size()) * self.std + self.mean
-
         return adv_images
 
     def __call__(self, *input, **kwargs):
