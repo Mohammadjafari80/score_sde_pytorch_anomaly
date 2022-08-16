@@ -1,11 +1,9 @@
 
 import torch
 import torch.nn as nn
-from attacks.attack import Attack
 
 class Gaussian():
     def __init__(self, model, mean=0.0, std=0.02):
-        super().__init__("FGSM", model)
         self.mean = mean
         self.std = std
 
