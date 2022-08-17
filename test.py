@@ -162,7 +162,7 @@ elif test_config['dataset'] == 'cifar':
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
 
     testset = CIFAR10(root=os.path.join(test_config['cifar_root'], 'cifar10'), train=False, download=True, transform=orig_transform)
-    testset.targets  = [int(t!=normal_class) for t in testset.targets]
+    testset.targets  = [int(t!=normal_class_indx) for t in testset.targets]
 
     if test_config['quick_estimate']:
         sample_count = int(len(testset) * test_config['portion_of_sample'])
