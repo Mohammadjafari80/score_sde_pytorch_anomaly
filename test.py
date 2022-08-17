@@ -220,7 +220,7 @@ for repeat in range(test_config['bpd_num_repeats']):
 
     all_bpds.append(scores)
     auc_score = roc_auc_score(labels, scores)
-    results['auc'].append(auc_score)
+    results['auc'].append(auc_score * 100)
     results['label'].append(normal_class)
     results['repeat'].append(repeat)
 
