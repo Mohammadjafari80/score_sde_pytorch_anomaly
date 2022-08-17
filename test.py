@@ -259,7 +259,7 @@ if test_config['test_on_train']:
                         new_batch = (torch.rand_like(new_batch, device=device) + new_batch * 255.) / 256. 
                     img = scaler(new_batch)
                     bpd, z, nfe = likelihood_fn(score_model, img)
-                    current_scores = bpd..detach().cpu().numpy().reshape(-1)
+                    current_scores = bpd.detach().cpu().numpy().reshape(-1)
                     scores.extend(current_scores.tolist())
                     tepoch.set_postfix({'BPDs' : current_scores})
 
