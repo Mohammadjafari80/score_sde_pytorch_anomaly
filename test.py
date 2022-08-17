@@ -222,7 +222,7 @@ for repeat in range(test_config['bpd_num_repeats']):
     auc_score = roc_auc_score(labels, scores)
     results['auc'].append(auc_score)
     results['label'].append(normal_class)
-    results['repeat'].append(normal_class)
+    results['repeat'].append(repeat)
 
     df = pd.DataFrame(results)
     df.to_csv(os.path.join(test_config['auc_save_path'], f'auc-{dataset}-{normal_class}.csv'), index=False)
