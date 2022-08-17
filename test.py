@@ -174,79 +174,98 @@ elif test_config['dataset'] == 'cifar':
     
 # TEST SCORES & AUC on TEST SET ---- NO SHUFFLE
 
-scores = []
-labels = []
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+dataset = test_config['dataset']
 
 import pandas as pd
 
 results = {}
 try:
-    results = pd.read_csv(os.path.join(test_config['auc_save_path'], f'auc-{normal_class}.csv')).to_dict(orient='list')
+    results = pd.read_csv(os.path.join(test_config['auc_save_path'], f'auc-{dataset}-{normal_class}.csv')).to_dict(orient='list')
 except:
     results['auc'] = []
     results['label'] = []
-
-print('-' * 50)
-print(f'Evaluating Scores on TestSet - {"Quick" if  test_config["quick_estimate"] else "Complete"} mode')
-print('-' * 50)
-
-with tqdm(test_loader, unit="batch") as tepoch:
-        for i, data in enumerate(tepoch):
-            tepoch.set_description(f'Batch : {i+1}/{len(test_loader)}')
-            new_batch = data[0].to(device)
-            img = scaler(new_batch)
-            current_labels = data[1].detach().cpu().numpy()
-            bpd, z, nfe = likelihood_fn(score_model, img)
-            current_scores = bpd.detach().cpu().numpy()
-            scores.extend(current_scores.tolist())
-            labels.extend(current_labels.tolist())
-            tepoch.set_postfix({'BPDs' : current_scores, 'Labels' : current_labels})
-            
-
-from sklearn.metrics import roc_auc_score
-
-auc_score = roc_auc_score(labels, scores)
-results['auc'].append(auc_score)
-results['label'].append(normal_class)
-df = pd.DataFrame(results)
-df.to_csv(os.path.join(test_config['auc_save_path'], f'auc-{normal_class}.csv'), index=False)
-print(f'Added AUC resutls at {os.path.join(test_config["auc_save_path"])}')
-print(f'AUC Score - Test is : {auc_score * 100}')
+    results['repeat'] = []
 
 
-if not test_config['quick_estimate']:
 
-    with open(os.path.join(test_config['test_save_path'], f'score-{normal_class}-test.npy'), 'wb') as f:
-            np.save(f, np.array(scores))
+all_bpds = []
 
-    with open(os.path.join(test_config['test_save_path'], f'labels-{normal_class}-test.npy'), 'wb') as f:
-            np.save(f, np.array(labels))
+
+for repeat in range(test_config['bpd_num_repeats']):
+    print('-' * 50)
+    print(f'Evaluating Scores on TestSet - {"Quick" if  test_config["quick_estimate"] else "Complete"} mode - Pass {repeat+1}/{test_config["bpd_num_repeats"]}')
+    print('-' * 50)
+
+    scores = []
+    labels = []
+
+    with tqdm(test_loader, unit="batch") as tepoch:
+            for i, data in enumerate(tepoch):
+                tepoch.set_description(f'Batch : {i+1}/{len(test_loader)} | Pass: {repeat+1}/{test_config["bpd_num_repeats"]}')
+                new_batch = data[0].to(device)
+                if test_config['uniform_dequantization']:
+                    new_batch =  (torch.rand_like(new_batch, device=device) + new_batch * 255.) / 256. 
+                img = scaler(new_batch)
+                current_labels = data[1].detach().cpu().numpy()
+                bpd, z, nfe = likelihood_fn(score_model, img)
+                current_scores = bpd.detach().cpu().numpy().reshape(-1)
+                scores.extend(current_scores.tolist())
+                labels.extend(current_labels.tolist())
+                tepoch.set_postfix({'BPDs' : current_scores, 'Labels' : current_labels})
+                
+
+    from sklearn.metrics import roc_auc_score
+
+    all_bpds.append(scores)
+    auc_score = roc_auc_score(labels, scores)
+    results['auc'].append(auc_score)
+    results['label'].append(normal_class)
+    results['repeat'].append(normal_class)
+
+    df = pd.DataFrame(results)
+    df.to_csv(os.path.join(test_config['auc_save_path'], f'auc-{dataset}-{normal_class}.csv'), index=False)
+    print(f'Added AUC resutls at {os.path.join(test_config["auc_save_path"])}')
+    print(f'AUC Score - Test - Pass {repeat+1} is : {auc_score * 100}')
+
+
+    if not test_config['quick_estimate']:
+
+        with open(os.path.join(test_config['test_save_path'], f'score-{dataset}-{normal_class}-{repeat}-test.npy'), 'wb') as f:
+                np.save(f, np.array(scores))
+
+        with open(os.path.join(test_config['test_save_path'], f'labels-{dataset}-{normal_class}-{repeat}-test.npy'), 'wb') as f:
+                np.save(f, np.array(labels))
+
+with open(os.path.join(test_config['test_save_path'], f'scores-{dataset}-{normal_class}-all-test.npy'), 'wb') as f:
+                np.save(f, np.array(all_bpds))
 
 
 # TEST SCORES & AUC on TRAIN SET ---- NO SHUFFLE
 
 scores = []
 
-if not test_config['quick_estimate']:
-    print('-' * 50)
-    print('Evaluating Scores on TrainSet...')
-    print('-' * 50)
+if test_config['test_on_train']:
+    if not test_config['quick_estimate']:
+        print('-' * 50)
+        print('Evaluating Scores on TrainSet...')
+        print('-' * 50)
+        with tqdm(train_loader, unit="batch") as tepoch:
+                for i, data in enumerate(tepoch):
+                    tepoch.set_description(f'Batch : {i+1}/{len(train_loader)}')
+                    new_batch = data[0].to(device)
+                    if test_config['uniform_dequantization']:
+                        new_batch = (torch.rand_like(new_batch, device=device) + new_batch * 255.) / 256. 
+                    img = scaler(new_batch)
+                    bpd, z, nfe = likelihood_fn(score_model, img)
+                    current_scores = bpd..detach().cpu().numpy().reshape(-1)
+                    scores.extend(current_scores.tolist())
+                    tepoch.set_postfix({'BPDs' : current_scores})
 
-    with tqdm(train_loader, unit="batch") as tepoch:
-            for i, data in enumerate(tepoch):
-                tepoch.set_description(f'Batch : {i+1}/{len(train_loader)}')
-                new_batch = data[0].to(device)
-                img = scaler(new_batch)
-                bpd, z, nfe = likelihood_fn(score_model, img)
-                current_scores = bpd.detach().cpu().numpy()
-                scores.extend(current_scores.tolist())
-                tepoch.set_postfix({'BPDs' : current_scores})
 
 
-
-    with open(os.path.join(test_config['train_save_path'], f'score-{normal_class}-train.npy'), 'wb') as f:
-            np.save(f, np.array(scores))
+        with open(os.path.join(test_config['train_save_path'], f'score-{normal_class}-train.npy'), 'wb') as f:
+                np.save(f, np.array(scores))
 
 

@@ -3,10 +3,13 @@ config_path: /content/score_sde_pytorch_anomaly/dataset_configs/mvtec.yaml
 mvtec_root: /content/mvtec_anomaly_detection/ # Path to root of mvtec dataset
 cifar_root: ~/.datasets
 normal_class: toothbrush #  MVTEC exmple: bottle, Cifar example: airplane
-batch_size: 2 # it has to be greater than 1
+batch_size: 8 # it has to be greater than 1
 ckpt_path: /content/drive/MyDrive/iter_1600_Toothbrush.pth # Path to already trained model
 train_save_path: ./results/ # Saves 'score-{normal_class}-train.npy' there
 test_save_path: ./results/ # Saves 'score-{normal_class}-test.npy' and 'labels-{normal_class}-test.npy' there
 auc_save_path: ./results/
+test_on_train: False
+bpd_num_repeats: 1
+uniform_dequantization: True
 quick_estimate: False
-portion_of_sample: 0.2
+portion_of_sample: 0.1
