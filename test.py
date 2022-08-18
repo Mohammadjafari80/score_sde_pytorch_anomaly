@@ -177,8 +177,9 @@ elif test_config['dataset'] == 'mnist':
     trainset.data = trainset.data[np.array(trainset.targets) == normal_class_indx]
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
 
-    testset = MNIST(root=os.path.join(test_config['mnist_root'], 'MNIST'), train=False, download=True, transform=orig_transform, target_transform=lambda x: int(x!=normal_class_indx))
-
+    testset = MNIST(root=os.path.join(test_config['mnist_root'], 'MNIST'), train=False, download=True, transform=orig_transform)
+    testset.targets  = [int(t!=normal_class_indx) for t in testset.targets]
+    
     if test_config['quick_estimate']:
         sample_count = int(len(testset) * test_config['portion_of_sample'])
         testset, _ = torch.utils.data.random_split(testset, [sample_count, len(testset) - sample_count])
