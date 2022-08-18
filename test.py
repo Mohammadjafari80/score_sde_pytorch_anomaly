@@ -60,7 +60,7 @@ import yaml
 from sampling import get_pc_sampler
 from datasets import MVTecDataset
 import torchvision.transforms as transforms
-from torchvision.datasets import CIFAR10
+from torchvision.datasets import CIFAR10, MNIST
 
 
 test_config = None
@@ -170,6 +170,20 @@ elif test_config['dataset'] == 'cifar':
 
     test_loader = torch.utils.data.DataLoader(testset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
 
+elif test_config['dataset'] == 'mnist':
+    mnist_labels = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+    trainset = MNIST(root=os.path.join(test_config['mnist_root'], 'MNIST'), train=True, download=True, transform=orig_transform)
+    normal_class_indx = mnist_labels.index(normal_class)
+    trainset.data = trainset.data[np.array(trainset.targets) == normal_class_indx]
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
+
+    testset = MNIST(root=os.path.join(test_config['mnist_root'], 'MNIST'), train=False, download=True, transform=orig_transform, target_transform=lambda x: int(x!=normal_class_indx))
+
+    if test_config['quick_estimate']:
+        sample_count = int(len(testset) * test_config['portion_of_sample'])
+        testset, _ = torch.utils.data.random_split(testset, [sample_count, len(testset) - sample_count])
+
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=test_config['batch_size'], shuffle=False, num_workers=2)
     
     
 # TEST SCORES & AUC on TEST SET ---- NO SHUFFLE

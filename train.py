@@ -163,7 +163,7 @@ root_dir_train = os.path.join(mvtec_root, normal_class, 'train')
 
 from torchvision.datasets import ImageFolder
 import torch
-from torchvision.datasets import CIFAR10
+from torchvision.datasets import CIFAR10, MNIST
 from torchvision import transforms
 from torchvision.datasets import FashionMNIST
 import torchvision.transforms as transforms
@@ -191,6 +191,13 @@ elif train_config['dataset'] == 'cifar':
     cifar_labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
     trainset = CIFAR10(root=os.path.join(train_config['cifar_root'], 'cifar10'), train=True, download=True, transform=orig_transform)
     normal_class_indx = cifar_labels.index(normal_class)
+    trainset.data = trainset.data[np.array(trainset.targets) == normal_class_indx]
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=train_config['batch_size'], shuffle=True, num_workers=2)
+
+elif train_config['dataset'] == 'mnist':
+    mnist_labels = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+    trainset = MNIST(root=os.path.join(train_config['mnist_root'], 'MNIST'), train=True, download=True, transform=orig_transform)
+    normal_class_indx = mnist_labels.index(normal_class)
     trainset.data = trainset.data[np.array(trainset.targets) == normal_class_indx]
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=train_config['batch_size'], shuffle=True, num_workers=2)
 
