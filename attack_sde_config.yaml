@@ -12,6 +12,7 @@ sde_labels: ./toothbrush.npy
 learning_rate: 0.00001
 number_of_epochs: 60
 auc_every_epoch: True
+uniform_dequantization: True
 attacks: # You can add as many as configs as you like. supported [PGD, FGSM]
   - PGD: { "eps": 0.02, "steps": 100, "regression_value": -50.0 } # regression_value must be float (Not -50)
   - PGD: { "eps": 0.03, "steps": 100, "regression_value": -50.0 }

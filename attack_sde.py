@@ -182,7 +182,8 @@ orig_transform = transforms.Compose([
 normal_class =  attack_config['normal_class']
 
 
-## Test SDE labels and SDE Scores
+## Test SDE labels and SDE Scores -------------------------------------------------------------
+
 resnet_transform = transforms.Compose([
             transforms.Resize(config.data.image_size),
             transforms.Resize((224, 224)),
@@ -311,8 +312,13 @@ def do_attack(attack, simulated_model,  dataloader):
         print(adversarial_simulated_output.detach().cpu().numpy().flatten())
 
         inputs_sde = transforms.Resize((config.data.image_size, config.data.image_size))(adv_images)
+
+        if attack_config['uniform_dequantization']:
+            inputs_sde = (torch.rand_like(inputs_sde, device=device) + inputs_sde * 255.) / 256. 
+
         img = scaler(inputs_sde)
         bpd, z, nfe = likelihood_fn(score_model, img)
+        
         
         print('Scores BPD After:')
         print(bpd.detach().cpu().numpy().flatten())
